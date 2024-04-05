@@ -78,6 +78,11 @@ void CUSBKeyboardDevice::RegisterKeyPressedHandler (TKeyPressedHandler *pKeyPres
 	m_Behaviour.RegisterKeyPressedHandler (pKeyPressedHandler);
 }
 
+void CUSBKeyboardDevice::RegisterKeyReleasedHandler (TKeyReleasedHandler *pKeyReleasedHandler)
+{
+	m_Behaviour.RegisterKeyReleasedHandler (pKeyReleasedHandler);
+}
+
 void CUSBKeyboardDevice::RegisterSelectConsoleHandler (TSelectConsoleHandler *pSelectConsoleHandler)
 {
 	m_Behaviour.RegisterSelectConsoleHandler (pSelectConsoleHandler);

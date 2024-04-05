@@ -51,8 +51,16 @@ enum TModifierKey
 #define KEYB_LED_SCROLL_LOCK	(1 << 2)
 
 typedef void TKeyPressedHandler (const char *pString);
+typedef void TKeyReleasedHandler (const char *pString);
 typedef void TSelectConsoleHandler (unsigned nConsole);
 typedef void TShutdownHandler (void);
+
+// enum for key pressed or released
+enum TKeyEvent
+{
+    KeyEventPressed,
+    KeyEventReleased
+};
 
 class CKeyboardBehaviour
 {
@@ -61,6 +69,7 @@ public:
 	~CKeyboardBehaviour (void);
 
 	void RegisterKeyPressedHandler (TKeyPressedHandler *pKeyPressedHandler);
+	void RegisterKeyReleasedHandler (TKeyReleasedHandler *pKeyReleasedHandler);
 	void RegisterSelectConsoleHandler (TSelectConsoleHandler *pSelectConsoleHandler);
 	void RegisterShutdownHandler (TShutdownHandler *pShutdownHandler);
 
@@ -70,13 +79,14 @@ public:
 	u8 GetLEDStatus (void) const;
 
 private:
-	void GenerateKeyEvent (u8 ucKeyCode);
+	void GenerateKeyEvent (u8 ucKeyCode, TKeyEvent);
 
 	void TimerHandler (TKernelTimerHandle hTimer);
 	static void TimerStub (TKernelTimerHandle hTimer, void *pParam, void *pContext);
 
 private:
 	TKeyPressedHandler	*m_pKeyPressedHandler;
+	TKeyReleasedHandler	*m_pKeyReleasedHandler;
 	TSelectConsoleHandler	*m_pSelectConsoleHandler;
 	TShutdownHandler	*m_pShutdownHandler;
 

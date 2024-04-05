@@ -44,6 +44,7 @@ public:
 
 	// cooked mode
 	void RegisterKeyPressedHandler (TKeyPressedHandler *pKeyPressedHandler);
+	void RegisterKeyReleasedHandler (TKeyReleasedHandler *pKeyReleasedHandler);
 	void RegisterSelectConsoleHandler (TSelectConsoleHandler *pSelectConsoleHandler);
 	void RegisterShutdownHandler (TShutdownHandler *pShutdownHandler);
 

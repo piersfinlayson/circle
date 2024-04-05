@@ -27,6 +27,7 @@
 
 CKeyboardBehaviour::CKeyboardBehaviour (void)
 :	m_pKeyPressedHandler (0),
+	m_pKeyReleasedHandler (0),
 	m_pSelectConsoleHandler (0),
 	m_pShutdownHandler (0),
 	m_ucModifiers (0),
@@ -38,6 +39,7 @@ CKeyboardBehaviour::CKeyboardBehaviour (void)
 CKeyboardBehaviour::~CKeyboardBehaviour (void)
 {
 	m_pKeyPressedHandler = 0;
+	m_pKeyReleasedHandler = 0;
 	m_pSelectConsoleHandler = 0;
 	m_pShutdownHandler = 0;
 }
@@ -46,6 +48,12 @@ void CKeyboardBehaviour::RegisterKeyPressedHandler (TKeyPressedHandler *pKeyPres
 {
 	assert (pKeyPressedHandler != 0);
 	m_pKeyPressedHandler = pKeyPressedHandler;
+}
+
+void CKeyboardBehaviour::RegisterKeyReleasedHandler (TKeyReleasedHandler *pKeyReleasedHandler)
+{
+	assert (pKeyReleasedHandler != 0);
+	m_pKeyReleasedHandler = pKeyReleasedHandler;
 }
 
 void CKeyboardBehaviour::RegisterSelectConsoleHandler (TSelectConsoleHandler *pSelectConsoleHandler)
@@ -65,7 +73,7 @@ u8 CKeyboardBehaviour::GetLEDStatus (void) const
 	return m_KeyMap.GetLEDStatus ();
 }
 
-void CKeyboardBehaviour::GenerateKeyEvent (u8 ucKeyCode)
+void CKeyboardBehaviour::GenerateKeyEvent (u8 ucKeyCode, TKeyEvent eEvent)
 {
 	const char *pKeyString;
 	char Buffer[2];
@@ -110,10 +118,16 @@ void CKeyboardBehaviour::GenerateKeyEvent (u8 ucKeyCode)
 
 	default:
 		pKeyString = m_KeyMap.GetString (usLogCode, ucModifiers, Buffer);
-		if (   pKeyString != 0
-		    && m_pKeyPressedHandler != 0)
+		if (pKeyString != 0)
 		{
-			(*m_pKeyPressedHandler) (pKeyString);
+			if (eEvent == KeyEventPressed && m_pKeyPressedHandler != 0)
+			{
+				(*m_pKeyPressedHandler) (pKeyString);
+			}
+			else if (eEvent == KeyEventReleased && m_pKeyReleasedHandler != 0)
+			{
+				(*m_pKeyReleasedHandler) (pKeyString);
+			}
 		}
 		break;
 	}
@@ -133,7 +147,7 @@ void CKeyboardBehaviour::KeyPressed (u8 ucKeyCode)
 		{
 			m_ucLastKeyCode = ucKeyCode;
 
-			GenerateKeyEvent (ucKeyCode);
+			GenerateKeyEvent (ucKeyCode, KeyEventPressed);
 
 #ifdef REPEAT_ENABLE
 			if (m_hTimer != 0)
@@ -158,6 +172,8 @@ void CKeyboardBehaviour::KeyReleased (u8 ucKeyCode)
 	}
 	else
 	{
+		GenerateKeyEvent (ucKeyCode, KeyEventReleased);
+
 		if (ucKeyCode == m_ucLastKeyCode)
 		{
 			if (m_hTimer != 0)
@@ -177,7 +193,7 @@ void CKeyboardBehaviour::TimerHandler (TKernelTimerHandle hTimer)
 
 	if (m_ucLastKeyCode != 0)
 	{
-		GenerateKeyEvent (m_ucLastKeyCode);
+		GenerateKeyEvent (m_ucLastKeyCode, KeyEventPressed);
 
 		m_hTimer = CTimer::Get ()->StartKernelTimer (REPEAT_RATE, TimerStub, 0, this);
 		assert (m_hTimer != 0);
